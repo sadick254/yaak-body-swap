@@ -1,4 +1,5 @@
 import type { PluginDefinition } from "@yaakapp/api";
+import { pickVariant } from "./picker";
 import { listVariants, saveVariant } from "./variants";
 
 export const plugin: PluginDefinition = {
@@ -37,45 +38,23 @@ export const plugin: PluginDefinition = {
       label: "Switch Body Variant",
       icon: "chevron_down",
       async onSelect(ctx, { httpRequest }) {
-        const variants = await listVariants(ctx, httpRequest.id);
-        const names = Object.keys(variants).sort((a, b) => a.localeCompare(b));
-        if (names.length === 0) {
-          await ctx.toast.show({
-            color: "notice",
-            icon: "info",
-            message: "No body variants saved for this request yet",
-          });
-          return;
-        }
-
-        const values = await ctx.prompt.form({
+        const picked = await pickVariant(ctx, httpRequest.id, {
           id: "body-variants.switch",
           title: "Switch Body Variant",
           description:
             "Replaces the current body. Save it as a variant first if you want to keep it.",
-          inputs: [
-            {
-              type: "select",
-              name: "variant",
-              label: "Variant",
-              defaultValue: names[0],
-              options: names.map((name) => ({ label: name, value: name })),
-            },
-          ],
         });
-        const name = typeof values?.variant === "string" ? values.variant : null;
-        const snapshot = name == null ? undefined : variants[name];
-        if (name == null || snapshot === undefined) return;
+        if (picked == null) return;
 
         await ctx.httpRequest.update({
           id: httpRequest.id,
-          body: snapshot.body,
-          bodyType: snapshot.bodyType,
+          body: picked.snapshot.body,
+          bodyType: picked.snapshot.bodyType,
         });
         await ctx.toast.show({
           color: "success",
           icon: "check",
-          message: `Switched body to variant "${name}"`,
+          message: `Switched body to variant "${picked.name}"`,
         });
       },
     },
@@ -83,55 +62,33 @@ export const plugin: PluginDefinition = {
       label: "Send Body Variant",
       icon: "copy",
       async onSelect(ctx, { httpRequest }) {
-        const variants = await listVariants(ctx, httpRequest.id);
-        const names = Object.keys(variants).sort((a, b) => a.localeCompare(b));
-        if (names.length === 0) {
-          await ctx.toast.show({
-            color: "notice",
-            icon: "info",
-            message: "No body variants saved for this request yet",
-          });
-          return;
-        }
-
-        const values = await ctx.prompt.form({
+        const picked = await pickVariant(ctx, httpRequest.id, {
           id: "body-variants.send",
           title: "Send Body Variant",
           description:
             "Sends a copy of this request with the chosen body. The request itself is left untouched.",
-          inputs: [
-            {
-              type: "select",
-              name: "variant",
-              label: "Variant",
-              defaultValue: names[0],
-              options: names.map((name) => ({ label: name, value: name })),
-            },
-          ],
         });
-        const name = typeof values?.variant === "string" ? values.variant : null;
-        const snapshot = name == null ? undefined : variants[name];
-        if (name == null || snapshot === undefined) return;
+        if (picked == null) return;
 
         const response = await ctx.httpRequest.send({
           httpRequest: {
             ...httpRequest,
-            body: snapshot.body,
-            bodyType: snapshot.bodyType,
+            body: picked.snapshot.body,
+            bodyType: picked.snapshot.bodyType,
           },
         });
         if (response.error != null) {
           await ctx.toast.show({
             color: "danger",
             icon: "alert_triangle",
-            message: `Body variant "${name}" failed: ${response.error}`,
+            message: `Body variant "${picked.name}" failed: ${response.error}`,
           });
           return;
         }
         await ctx.toast.show({
           color: response.status < 400 ? "success" : "warning",
           icon: response.status < 400 ? "check" : "alert_triangle",
-          message: `Sent body variant "${name}" — HTTP ${response.status}`,
+          message: `Sent body variant "${picked.name}" — HTTP ${response.status}`,
         });
       },
     },
