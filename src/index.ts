@@ -46,8 +46,11 @@ export const plugin: PluginDefinition = {
         });
         if (picked == null) return;
 
+        // Spread the whole model: update() args are deserialized with serde
+        // defaults and every column is overwritten, so a bare partial would
+        // blank the request's url, name, and workspace binding.
         await ctx.httpRequest.update({
-          id: httpRequest.id,
+          ...httpRequest,
           body: picked.snapshot.body,
           bodyType: picked.snapshot.bodyType,
         });

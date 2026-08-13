@@ -60,8 +60,16 @@ function action(label: string) {
   return found;
 }
 
+// Carries the fields a real request has beyond the body pair: the update()
+// assertions rely on them to tell "full model" apart from a bare partial.
 const request = {
   id: "req_1",
+  workspaceId: "wk_1",
+  folderId: null,
+  name: "Create user",
+  method: "POST",
+  url: "https://api.example.com/users",
+  headers: [{ name: "X-Trace", value: "1", enabled: true }],
   body: { text: '{"email":"a@b.c"}' },
   bodyType: "application/json",
 } as unknown as HttpRequest;
@@ -85,12 +93,14 @@ describe("Save Body as Variant", () => {
 });
 
 describe("Switch Body Variant", () => {
-  test("writes the chosen snapshot back onto the request", async () => {
+  test("writes the whole request back with the chosen snapshot", async () => {
     const { ctx, updates } = fakeCtx({ form: { variant: "empty" } });
     await saveVariant(ctx, "req_1", "empty", { body: { text: "{}" }, bodyType: "application/json" });
     await action("Switch Body Variant").onSelect(ctx, { httpRequest: request });
+    // The full model matters: the app deserializes update() args with serde
+    // defaults and overwrites every column, so a partial blanks the request.
     expect(updates).toEqual([
-      { id: "req_1", body: { text: "{}" }, bodyType: "application/json" },
+      { ...request, body: { text: "{}" }, bodyType: "application/json" },
     ]);
   });
 
