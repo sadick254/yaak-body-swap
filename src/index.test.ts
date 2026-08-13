@@ -104,6 +104,20 @@ describe("Switch Body Variant", () => {
     ]);
   });
 
+  test("preselects the variant matching the current body", async () => {
+    const { ctx, updates, formCalls } = fakeCtx({ form: {} });
+    await saveVariant(ctx, "req_1", "aaa", { body: { text: "other" }, bodyType: "text/plain" });
+    // Key order differs from the fixture's body on purpose: matching is by
+    // content, not by serialized representation.
+    await saveVariant(ctx, "req_1", "zzz", { body: request.body, bodyType: request.bodyType });
+    await action("Switch Body Variant").onSelect(ctx, { httpRequest: request });
+
+    const form = formCalls[0] as { inputs: Array<{ defaultValue?: string }> };
+    expect(form.inputs[0]?.defaultValue).toBe("zzz");
+    // The untouched confirm resolves to the matching variant, not "aaa".
+    expect(updates).toEqual([{ ...request }]);
+  });
+
   test("treats an untouched dialog as picking the preselected first variant", async () => {
     // The app's form dialog only records inputs the user touches: it renders
     // the select's defaultValue but returns {} when confirmed as-is.

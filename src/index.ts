@@ -38,7 +38,7 @@ export const plugin: PluginDefinition = {
       label: "Switch Body Variant",
       icon: "chevron_down",
       async onSelect(ctx, { httpRequest }) {
-        const picked = await pickVariant(ctx, httpRequest.id, {
+        const picked = await pickVariant(ctx, httpRequest, {
           id: "body-variants.switch",
           title: "Switch Body Variant",
           description:
@@ -65,7 +65,7 @@ export const plugin: PluginDefinition = {
       label: "Send Body Variant",
       icon: "copy",
       async onSelect(ctx, { httpRequest }) {
-        const picked = await pickVariant(ctx, httpRequest.id, {
+        const picked = await pickVariant(ctx, httpRequest, {
           id: "body-variants.send",
           title: "Send Body Variant",
           description:
@@ -99,7 +99,7 @@ export const plugin: PluginDefinition = {
       label: "Delete Body Variant",
       icon: "trash",
       async onSelect(ctx, { httpRequest }) {
-        const picked = await pickVariant(ctx, httpRequest.id, {
+        const picked = await pickVariant(ctx, httpRequest, {
           id: "body-variants.delete",
           title: "Delete Body Variant",
           description:
