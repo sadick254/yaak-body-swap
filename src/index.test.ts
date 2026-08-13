@@ -104,6 +104,16 @@ describe("Switch Body Variant", () => {
     ]);
   });
 
+  test("treats an untouched dialog as picking the preselected first variant", async () => {
+    // The app's form dialog only records inputs the user touches: it renders
+    // the select's defaultValue but returns {} when confirmed as-is.
+    const { ctx, updates } = fakeCtx({ form: {} });
+    await saveVariant(ctx, "req_1", "b-full", { body: { text: "b" }, bodyType: "text/plain" });
+    await saveVariant(ctx, "req_1", "a-min", { body: { text: "a" }, bodyType: "text/plain" });
+    await action("Switch Body Variant").onSelect(ctx, { httpRequest: request });
+    expect(updates).toEqual([{ ...request, body: { text: "a" }, bodyType: "text/plain" }]);
+  });
+
   test("toasts instead of prompting when nothing is saved", async () => {
     const { ctx, toasts, updates, formCalls } = fakeCtx();
     await action("Switch Body Variant").onSelect(ctx, { httpRequest: request });

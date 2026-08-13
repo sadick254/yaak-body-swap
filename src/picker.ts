@@ -33,7 +33,10 @@ export async function pickVariant(
       },
     ],
   });
-  const name = typeof values?.variant === "string" ? values.variant : null;
+  // A cancelled dialog resolves null; a confirmed one only carries values
+  // the user touched, so an untouched select means the preselected names[0].
+  if (values == null) return null;
+  const name = typeof values.variant === "string" ? values.variant : names[0];
   const snapshot = name == null ? undefined : variants[name];
   if (name == null || snapshot === undefined) return null;
   return { name, snapshot };
