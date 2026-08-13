@@ -12,6 +12,6 @@
     "vitest": "^4.0.14"
   },
   "dependencies": {
-    "@yaakapp/api": "^0.7.0"
+    "@yaakapp/api": "^0.8.3"
   }
 }
