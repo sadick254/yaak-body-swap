@@ -8,7 +8,7 @@ import { type BodySnapshot, listVariants } from "./variants";
 export async function pickVariant(
   ctx: Context,
   requestId: string,
-  dialog: { id: string; title: string; description: string },
+  dialog: { id: string; title: string; description: string; confirmText?: string },
 ): Promise<{ name: string; snapshot: BodySnapshot } | null> {
   const variants = await listVariants(ctx, requestId);
   const names = Object.keys(variants).sort((a, b) => a.localeCompare(b));

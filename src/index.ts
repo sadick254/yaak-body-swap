@@ -1,6 +1,6 @@
 import type { PluginDefinition } from "@yaakapp/api";
 import { pickVariant } from "./picker";
-import { listVariants, saveVariant } from "./variants";
+import { deleteVariant, listVariants, saveVariant } from "./variants";
 
 export const plugin: PluginDefinition = {
   httpRequestActions: [
@@ -89,6 +89,27 @@ export const plugin: PluginDefinition = {
           color: response.status < 400 ? "success" : "warning",
           icon: response.status < 400 ? "check" : "alert_triangle",
           message: `Sent body variant "${picked.name}" — HTTP ${response.status}`,
+        });
+      },
+    },
+    {
+      label: "Delete Body Variant",
+      icon: "trash",
+      async onSelect(ctx, { httpRequest }) {
+        const picked = await pickVariant(ctx, httpRequest.id, {
+          id: "body-variants.delete",
+          title: "Delete Body Variant",
+          description:
+            "Deletes the saved snapshot. The request's current body is not affected.",
+          confirmText: "Delete",
+        });
+        if (picked == null) return;
+
+        await deleteVariant(ctx, httpRequest.id, picked.name);
+        await ctx.toast.show({
+          color: "success",
+          icon: "trash",
+          message: `Deleted body variant "${picked.name}"`,
         });
       },
     },

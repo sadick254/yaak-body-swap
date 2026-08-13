@@ -147,3 +147,23 @@ describe("Send Body Variant", () => {
     expect(sends).toEqual([]);
   });
 });
+
+describe("Delete Body Variant", () => {
+  test("removes the chosen snapshot and nothing else", async () => {
+    const { ctx, toasts, updates } = fakeCtx({ form: { variant: "empty" } });
+    await saveVariant(ctx, "req_1", "empty", { body: { text: "{}" }, bodyType: "application/json" });
+    await saveVariant(ctx, "req_1", "full", { body: { text: "{...}" }, bodyType: "application/json" });
+    await action("Delete Body Variant").onSelect(ctx, { httpRequest: request });
+    expect(Object.keys(await listVariants(ctx, "req_1"))).toEqual(["full"]);
+    expect(updates).toEqual([]);
+    expect(toasts[0]?.message).toBe('Deleted body variant "empty"');
+  });
+
+  test("does nothing when the dialog is cancelled", async () => {
+    const { ctx, toasts } = fakeCtx({ form: null });
+    await saveVariant(ctx, "req_1", "empty", { body: { text: "{}" }, bodyType: "application/json" });
+    await action("Delete Body Variant").onSelect(ctx, { httpRequest: request });
+    expect(Object.keys(await listVariants(ctx, "req_1"))).toEqual(["empty"]);
+    expect(toasts).toEqual([]);
+  });
+});

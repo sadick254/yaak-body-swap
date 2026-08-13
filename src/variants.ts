@@ -33,3 +33,21 @@ export async function saveVariant(
   await ctx.store.set(storeKey(requestId), variants);
   return { replaced };
 }
+
+export async function deleteVariant(
+  ctx: Context,
+  requestId: string,
+  name: string,
+): Promise<boolean> {
+  const variants = await listVariants(ctx, requestId);
+  if (!(name in variants)) return false;
+  delete variants[name];
+  // Drop the row entirely with the last variant, so deleted or abandoned
+  // requests leave nothing behind in the plugin store.
+  if (Object.keys(variants).length === 0) {
+    await ctx.store.delete(storeKey(requestId));
+  } else {
+    await ctx.store.set(storeKey(requestId), variants);
+  }
+  return true;
+}

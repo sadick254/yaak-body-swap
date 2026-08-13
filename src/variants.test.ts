@@ -1,6 +1,6 @@
 import type { Context } from "@yaakapp/api";
 import { describe, expect, test } from "vitest";
-import { listVariants, saveVariant } from "./variants";
+import { deleteVariant, listVariants, saveVariant } from "./variants";
 
 function fakeStoreCtx() {
   const stored = new Map<string, unknown>();
@@ -49,5 +49,25 @@ describe("variant store", () => {
     const { ctx } = fakeStoreCtx();
     await saveVariant(ctx, "req_1", "minimal", { body: { text: "a" }, bodyType: "text/plain" });
     expect(await listVariants(ctx, "req_2")).toEqual({});
+  });
+
+  test("deletes one variant and keeps the rest", async () => {
+    const { ctx } = fakeStoreCtx();
+    await saveVariant(ctx, "req_1", "minimal", { body: { text: "a" }, bodyType: "text/plain" });
+    await saveVariant(ctx, "req_1", "full", { body: { text: "b" }, bodyType: "text/plain" });
+    expect(await deleteVariant(ctx, "req_1", "minimal")).toBe(true);
+    expect(Object.keys(await listVariants(ctx, "req_1"))).toEqual(["full"]);
+  });
+
+  test("drops the store row when the last variant is deleted", async () => {
+    const { ctx, stored } = fakeStoreCtx();
+    await saveVariant(ctx, "req_1", "minimal", { body: { text: "a" }, bodyType: "text/plain" });
+    await deleteVariant(ctx, "req_1", "minimal");
+    expect(stored.size).toBe(0);
+  });
+
+  test("reports false for a name that was never saved", async () => {
+    const { ctx } = fakeStoreCtx();
+    expect(await deleteVariant(ctx, "req_1", "minimal")).toBe(false);
   });
 });
