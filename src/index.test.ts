@@ -1,14 +1,18 @@
-import type { Context, HttpRequest, JsonPrimitive } from "@yaakapp/api";
+import type { Context, HttpRequest, HttpResponse, JsonPrimitive } from "@yaakapp/api";
 import { describe, expect, test } from "vitest";
 import { plugin } from "./index";
 import { listVariants, saveVariant } from "./variants";
 
 type FormValues = { [key: string]: JsonPrimitive } | null;
 
-function fakeCtx(prompts: { text?: string | null; form?: FormValues } = {}) {
+function fakeCtx(
+  prompts: { text?: string | null; form?: FormValues } = {},
+  response: Partial<HttpResponse> = { status: 200, error: null },
+) {
   const stored = new Map<string, unknown>();
   const toasts: Array<{ message: string }> = [];
   const updates: Array<Partial<HttpRequest>> = [];
+  const sends: Array<{ httpRequest: Partial<HttpRequest> }> = [];
   const formCalls: unknown[] = [];
   const ctx = {
     store: {
@@ -41,9 +45,13 @@ function fakeCtx(prompts: { text?: string | null; form?: FormValues } = {}) {
         updates.push(args);
         return args;
       },
+      async send(args: { httpRequest: Partial<HttpRequest> }) {
+        sends.push(args);
+        return response as HttpResponse;
+      },
     },
   } as unknown as Context;
-  return { ctx, toasts, updates, formCalls };
+  return { ctx, toasts, updates, sends, formCalls };
 }
 
 function action(label: string) {
@@ -99,5 +107,43 @@ describe("Switch Body Variant", () => {
     await saveVariant(ctx, "req_1", "empty", { body: { text: "{}" }, bodyType: "application/json" });
     await action("Switch Body Variant").onSelect(ctx, { httpRequest: request });
     expect(updates).toEqual([]);
+  });
+});
+
+describe("Send Body Variant", () => {
+  test("sends a copy with the chosen body and leaves the request untouched", async () => {
+    const { ctx, sends, updates, toasts } = fakeCtx({ form: { variant: "empty" } });
+    await saveVariant(ctx, "req_1", "empty", { body: { text: "{}" }, bodyType: "application/json" });
+    await action("Send Body Variant").onSelect(ctx, { httpRequest: request });
+    expect(sends).toEqual([
+      { httpRequest: { ...request, body: { text: "{}" }, bodyType: "application/json" } },
+    ]);
+    expect(updates).toEqual([]);
+    expect(toasts[0]?.message).toBe('Sent body variant "empty" — HTTP 200');
+  });
+
+  test("reports a transport error instead of a status", async () => {
+    const { ctx, toasts } = fakeCtx(
+      { form: { variant: "empty" } },
+      { status: 0, error: "dns lookup failed" },
+    );
+    await saveVariant(ctx, "req_1", "empty", { body: { text: "{}" }, bodyType: "application/json" });
+    await action("Send Body Variant").onSelect(ctx, { httpRequest: request });
+    expect(toasts[0]?.message).toBe('Body variant "empty" failed: dns lookup failed');
+  });
+
+  test("toasts instead of prompting when nothing is saved", async () => {
+    const { ctx, toasts, sends, formCalls } = fakeCtx();
+    await action("Send Body Variant").onSelect(ctx, { httpRequest: request });
+    expect(toasts[0]?.message).toContain("No body variants");
+    expect(formCalls).toEqual([]);
+    expect(sends).toEqual([]);
+  });
+
+  test("does nothing when the dialog is cancelled", async () => {
+    const { ctx, sends } = fakeCtx({ form: null });
+    await saveVariant(ctx, "req_1", "empty", { body: { text: "{}" }, bodyType: "application/json" });
+    await action("Send Body Variant").onSelect(ctx, { httpRequest: request });
+    expect(sends).toEqual([]);
   });
 });
