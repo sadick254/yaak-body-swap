@@ -3,7 +3,7 @@ import type { Context, HttpRequest } from "@yaakapp/api";
 /**
  * A saved body is the opaque {body, bodyType} pair from the request model.
  * The shape of `body` depends on bodyType, so it is stored and restored
- * without interpretation — that is what keeps form and multipart bodies
+ * without interpretation. That is what keeps form and multipart bodies
  * working, not just text ones.
  */
 export type BodySnapshot = {

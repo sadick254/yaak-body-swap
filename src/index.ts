@@ -92,7 +92,7 @@ export const plugin: PluginDefinition = {
         await ctx.toast.show({
           color: response.status < 400 ? "success" : "warning",
           icon: response.status < 400 ? "check" : "alert_triangle",
-          message: `Sent body variant "${picked.name}" — HTTP ${response.status}`,
+          message: `Sent body variant "${picked.name}" (HTTP ${response.status})`,
         });
       },
     },

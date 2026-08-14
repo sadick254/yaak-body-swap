@@ -152,7 +152,7 @@ describe("Send Body Variant", () => {
     const switched = { ...request, body: { text: "{}" }, bodyType: "application/json" };
     expect(updates).toEqual([switched]);
     expect(sends).toEqual([{ httpRequest: switched }]);
-    expect(toasts[0]?.message).toBe('Sent body variant "empty" — HTTP 200');
+    expect(toasts[0]?.message).toBe('Sent body variant "empty" (HTTP 200)');
   });
 
   test("reports a transport error instead of a status", async () => {

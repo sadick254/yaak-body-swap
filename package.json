@@ -1,7 +1,7 @@
 {
   "name": "@sadick254/body-swap",
   "displayName": "Body Swap",
-  "description": "Keep several named body variants on one request — switch between them, send one, or delete it",
+  "description": "Keep several named body variants on one request: switch between them, send one, or delete it",
   "private": true,
   "version": "0.0.1",
   "scripts": {

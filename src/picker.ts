@@ -23,7 +23,7 @@ function sameBody(a: BodySnapshot, b: BodySnapshot): boolean {
  * Ask the user to pick one of the request's saved variants. Returns null when
  * nothing is saved (after telling the user so) or the dialog is cancelled.
  *
- * Preselects the variant whose snapshot equals the request's current body —
+ * Preselects the variant whose snapshot equals the request's current body:
  * the "active" one is inferred from content rather than tracked as state, so
  * editing the body simply makes no variant match and the first name wins.
  */
