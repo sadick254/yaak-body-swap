@@ -68,18 +68,19 @@ export const plugin: PluginDefinition = {
         const picked = await pickVariant(ctx, httpRequest, {
           id: "body-variants.send",
           title: "Send Body Variant",
-          description:
-            "Sends a copy of this request with the chosen body. The request itself is left untouched.",
+          description: "Switches the request to the chosen body, then sends it.",
         });
         if (picked == null) return;
 
-        const response = await ctx.httpRequest.send({
-          httpRequest: {
-            ...httpRequest,
-            body: picked.snapshot.body,
-            bodyType: picked.snapshot.bodyType,
-          },
-        });
+        // Switch first so the editor always shows the body the response in
+        // the history pane was produced by, then send that same model.
+        const switched = {
+          ...httpRequest,
+          body: picked.snapshot.body,
+          bodyType: picked.snapshot.bodyType,
+        };
+        await ctx.httpRequest.update(switched);
+        const response = await ctx.httpRequest.send({ httpRequest: switched });
         if (response.error != null) {
           await ctx.toast.show({
             color: "danger",

@@ -145,14 +145,13 @@ describe("Switch Body Variant", () => {
 });
 
 describe("Send Body Variant", () => {
-  test("sends a copy with the chosen body and leaves the request untouched", async () => {
+  test("switches the request to the chosen body and sends it", async () => {
     const { ctx, sends, updates, toasts } = fakeCtx({ form: { variant: "empty" } });
     await saveVariant(ctx, "req_1", "empty", { body: { text: "{}" }, bodyType: "application/json" });
     await action("Send Body Variant").onSelect(ctx, { httpRequest: request });
-    expect(sends).toEqual([
-      { httpRequest: { ...request, body: { text: "{}" }, bodyType: "application/json" } },
-    ]);
-    expect(updates).toEqual([]);
+    const switched = { ...request, body: { text: "{}" }, bodyType: "application/json" };
+    expect(updates).toEqual([switched]);
+    expect(sends).toEqual([{ httpRequest: switched }]);
     expect(toasts[0]?.message).toBe('Sent body variant "empty" — HTTP 200');
   });
 
