@@ -2,6 +2,8 @@
 
 **Keep several named bodies on one request. Switch, send, done.**
 
+![Body Swap in action](https://raw.githubusercontent.com/sadick254/yaak-body-swap/main/assets/demo.gif)
+
 A [Yaak](https://yaak.app) plugin for everyone who tests the same endpoint
 with more than one payload (the happy path, the missing field, the huge
 one) and is tired of pasting bodies in and out of the editor or keeping a
