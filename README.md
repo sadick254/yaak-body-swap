@@ -1,4 +1,4 @@
-# Body Variants
+# Body Swap
 
 **Keep several named bodies on one request. Switch, send, done.**
 
@@ -49,7 +49,7 @@ request is active:
 
 ## Install
 
-From the plugin registry: search for **Body Variants** in
+From the plugin registry: search for **Body Swap** in
 Settings → Plugins.
 
 From source:
